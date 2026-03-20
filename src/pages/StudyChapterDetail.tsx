@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, FileText, HelpCircle, Timer, CheckCircle, XCircle, RotateCcw } from "lucide-react";
 import { getChaptersForSubject, type MCQ } from "@/data/studyMaterial";
