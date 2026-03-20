@@ -13,6 +13,11 @@ import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
+import StudyMaterial from "@/pages/StudyMaterial";
+import StudySubjects from "@/pages/StudySubjects";
+import StudyClasses from "@/pages/StudyClasses";
+import StudyChapters from "@/pages/StudyChapters";
+import StudyChapterDetail from "@/pages/StudyChapterDetail";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +35,11 @@ const App = () => (
               <Route path="/feed" element={<Feed />} />
               <Route path="/exams" element={<Exams />} />
               <Route path="/exams/:examType" element={<ExamFeed />} />
+              <Route path="/study" element={<StudyMaterial />} />
+              <Route path="/study/:examType" element={<StudySubjects />} />
+              <Route path="/study/:examType/:subject" element={<StudyClasses />} />
+              <Route path="/study/:examType/:subject/:classLevel" element={<StudyChapters />} />
+              <Route path="/study/:examType/:subject/:classLevel/:chapterId" element={<StudyChapterDetail />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/profile" element={<Profile />} />
             </Route>
