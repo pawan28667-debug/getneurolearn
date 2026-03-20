@@ -1,0 +1,3 @@
+/*   https://docs.netlify.com/routing/redirects/rewrites-proxies/#history-pushstate-and-single-page-apps   */
+/*    @vercel/static also respects this file    */
+/* SPA fallback */
