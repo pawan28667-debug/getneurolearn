@@ -157,7 +157,7 @@ const MockTestTab = ({ mcqs, chapterName }: { mcqs: MCQ[]; chapterName: string }
   const [timeLeft, setTimeLeft] = useState(mcqs.length * 60); // 1 min per question
 
   // Timer
-  useState(() => {
+  useEffect(() => {
     if (!started || submitted) return;
     const interval = setInterval(() => {
       setTimeLeft((t) => {
@@ -166,7 +166,7 @@ const MockTestTab = ({ mcqs, chapterName }: { mcqs: MCQ[]; chapterName: string }
       });
     }, 1000);
     return () => clearInterval(interval);
-  });
+  }, [started, submitted]);
 
   const score = submitted ? mcqs.filter((q, i) => answers[i] === q.answer).length : 0;
   const total = mcqs.length;
