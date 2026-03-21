@@ -1,5 +1,5 @@
-import { useNavigate } from "react-router-dom";
-import { Sparkles, BookOpen, Brain, Zap, Trophy, ArrowRight } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Sparkles, BookOpen, Brain, Zap, Trophy, ArrowRight, Shield, FileText, Mail, Info, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 
 const features = [
@@ -38,7 +38,7 @@ const Landing = () => {
               Swipe through addictive, reel-style lessons. Ace JEE, NEET, UPSC & more with AI-powered micro-learning.
             </p>
             <button
-              onClick={() => navigate("/feed")}
+              onClick={() => navigate("/auth")}
               className="gradient-primary text-primary-foreground font-display font-semibold px-8 py-3 rounded-xl text-base hover:opacity-90 transition-opacity inline-flex items-center gap-2 animate-pulse-glow"
             >
               Start Learning Free
@@ -114,16 +114,48 @@ const Landing = () => {
       </section>
 
       {/* CTA */}
-      <section className="px-4 pb-20">
+      <section className="px-4 pb-12">
         <div className="max-w-lg mx-auto text-center">
           <button
-            onClick={() => navigate("/feed")}
+            onClick={() => navigate("/auth")}
             className="gradient-primary text-primary-foreground font-display font-semibold px-8 py-3 rounded-xl text-base hover:opacity-90 transition-opacity"
           >
             Start Learning Free
           </button>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border/50 bg-muted/30 px-4 py-8">
+        <div className="max-w-lg mx-auto">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
+              <Zap className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <span className="font-display font-bold text-lg">NeuroLearn</span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <Link to="/about" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Info className="w-3.5 h-3.5" /> About Us
+            </Link>
+            <Link to="/contact" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Mail className="w-3.5 h-3.5" /> Contact Us
+            </Link>
+            <Link to="/privacy" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Shield className="w-3.5 h-3.5" /> Privacy Policy
+            </Link>
+            <Link to="/terms" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <FileText className="w-3.5 h-3.5" /> Terms & Conditions
+            </Link>
+            <Link to="/disclaimer" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Scale className="w-3.5 h-3.5" /> Disclaimer
+            </Link>
+          </div>
+          <p className="text-center text-[10px] text-muted-foreground">
+            © {new Date().getFullYear()} NeuroLearn. All rights reserved.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
