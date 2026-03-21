@@ -13,6 +13,11 @@ import Dashboard from "@/pages/Dashboard";
 import Profile from "@/pages/Profile";
 import Auth from "@/pages/Auth";
 import NotFound from "@/pages/NotFound";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import Privacy from "@/pages/Privacy";
+import Terms from "@/pages/Terms";
+import Disclaimer from "@/pages/Disclaimer";
 import StudyMaterial from "@/pages/StudyMaterial";
 import StudySubjects from "@/pages/StudySubjects";
 import StudyClasses from "@/pages/StudyClasses";
@@ -30,6 +35,11 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Landing />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/disclaimer" element={<Disclaimer />} />
             <Route path="/auth" element={<Auth />} />
             <Route element={<AppLayout />}>
               <Route path="/feed" element={<Feed />} />
