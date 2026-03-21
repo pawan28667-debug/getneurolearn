@@ -1,6 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Sparkles, BookOpen, Brain, Zap, Trophy, ArrowRight, Shield, FileText, Mail, Info, Scale } from "lucide-react";
 import { motion } from "framer-motion";
+import HeaderMenu from "@/components/layout/HeaderMenu";
 
 const features = [
   { icon: Sparkles, title: "60-Second Lessons", desc: "Bite-sized, reel-style learning that sticks" },
@@ -14,8 +15,17 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-lg items-center justify-between">
+          <Link to="/" className="font-display text-lg font-bold gradient-text">
+            NeuroLearn
+          </Link>
+          <HeaderMenu />
+        </div>
+      </header>
+
       {/* Hero */}
-      <section className="relative overflow-hidden px-4 pt-20 pb-16">
+      <section className="relative overflow-hidden px-4 pt-24 pb-16">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-10 w-72 h-72 rounded-full bg-primary/20 blur-3xl" />
           <div className="absolute bottom-20 right-10 w-72 h-72 rounded-full bg-secondary/20 blur-3xl" />
@@ -86,7 +96,7 @@ const Landing = () => {
       </section>
 
       {/* Pricing */}
-      <section className="px-4 pb-16">
+      <section id="pricing" className="px-4 pb-16 scroll-mt-24">
         <div className="max-w-lg mx-auto">
           <h2 className="font-display font-bold text-xl text-center mb-6">Simple Pricing</h2>
           <div className="grid grid-cols-2 gap-3">
