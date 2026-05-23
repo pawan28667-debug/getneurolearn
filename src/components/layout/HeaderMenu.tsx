@@ -4,9 +4,10 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { label: "Contact Us", to: "/contact" },
-  { label: "About Us", to: "/about" },
-  { label: "Pricing", href: "/#pricing" },
+  { label: "Home", to: "/", highlight: true },
+  { label: "Contact Us", to: "/contact", highlight: true },
+  { label: "About Us", to: "/about", highlight: true },
+  { label: "Pricing", href: "/#pricing", highlight: true },
   { label: "Sign Up", to: "/auth" },
 ];
 
