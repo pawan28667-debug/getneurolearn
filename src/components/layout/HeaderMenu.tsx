@@ -67,27 +67,22 @@ const HeaderMenu = ({ className }: HeaderMenuProps) => {
         </div>
 
         <nav className="flex flex-1 flex-col gap-3 px-4 py-5">
-          {menuItems.map((item) =>
-            item.to ? (
-              <Link
-                key={item.label}
-                to={item.to}
-                onClick={() => setOpen(false)}
-                className="glass rounded-2xl px-4 py-3 text-sm font-medium text-foreground transition-transform hover:-translate-y-0.5"
-              >
+          {menuItems.map((item) => {
+            const baseClass = "rounded-2xl px-4 py-3 text-sm font-medium transition-transform hover:-translate-y-0.5";
+            const styleClass = item.highlight
+              ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/30 border border-blue-400/40"
+              : "glass text-foreground";
+            const cls = `${baseClass} ${styleClass}`;
+            return item.to ? (
+              <Link key={item.label} to={item.to} onClick={() => setOpen(false)} className={cls}>
                 {item.label}
               </Link>
             ) : (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={() => setOpen(false)}
-                className="glass rounded-2xl px-4 py-3 text-sm font-medium text-foreground transition-transform hover:-translate-y-0.5"
-              >
+              <a key={item.label} href={item.href} onClick={() => setOpen(false)} className={cls}>
                 {item.label}
               </a>
-            ),
-          )}
+            );
+          })}
         </nav>
       </aside>
     </>
