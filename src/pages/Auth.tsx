@@ -44,11 +44,16 @@ const Auth = () => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/feed",
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email first");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + "/reset-password",
     });
-    if (result?.error) toast.error(String(result.error));
+    if (error) toast.error(error.message);
+    else toast.success("Password reset link sent to your email");
   };
 
   return (
