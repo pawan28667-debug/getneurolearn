@@ -136,32 +136,35 @@ const Landing = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 bg-muted/30 px-4 py-8">
+      <footer className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 text-white px-4 py-10">
         <div className="max-w-lg mx-auto">
-          <div className="flex items-center justify-center gap-2 mb-6">
-            <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center">
-              <Zap className="w-4 h-4 text-primary-foreground" />
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white" />
             </div>
             <span className="font-display font-bold text-lg">NeuroLearn</span>
           </div>
+          <p className="text-center text-blue-100 text-xs mb-6 max-w-xs mx-auto">
+            Your AI-powered study buddy for JEE, NEET, UPSC, SSC & Boards. Made with 💙 in India.
+          </p>
           <div className="grid grid-cols-2 gap-3 mb-6">
-            <Link to="/about" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+            <Link to="/about" className="flex items-center gap-2 text-blue-100 hover:text-white text-xs transition-colors bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2.5">
               <Info className="w-3.5 h-3.5" /> About Us
             </Link>
-            <Link to="/contact" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+            <Link to="/contact" className="flex items-center gap-2 text-blue-100 hover:text-white text-xs transition-colors bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2.5">
               <Mail className="w-3.5 h-3.5" /> Contact Us
             </Link>
-            <Link to="/privacy" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+            <Link to="/privacy" className="flex items-center gap-2 text-blue-100 hover:text-white text-xs transition-colors bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2.5">
               <Shield className="w-3.5 h-3.5" /> Privacy Policy
             </Link>
-            <Link to="/terms" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+            <Link to="/terms" className="flex items-center gap-2 text-blue-100 hover:text-white text-xs transition-colors bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2.5">
               <FileText className="w-3.5 h-3.5" /> Terms & Conditions
             </Link>
-            <Link to="/disclaimer" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+            <Link to="/disclaimer" className="col-span-2 flex items-center justify-center gap-2 text-blue-100 hover:text-white text-xs transition-colors bg-white/10 hover:bg-white/20 rounded-lg px-3 py-2.5">
               <Scale className="w-3.5 h-3.5" /> Disclaimer
             </Link>
           </div>
-          <p className="text-center text-[10px] text-muted-foreground">
+          <p className="text-center text-[10px] text-blue-200">
             © {new Date().getFullYear()} NeuroLearn. All rights reserved.
           </p>
         </div>
