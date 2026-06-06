@@ -144,22 +144,22 @@ const Landing = () => {
             </div>
             <span className="font-display font-bold text-lg">NeuroLearn</span>
           </div>
-          <div className="grid grid-cols-2 gap-2.5 mb-6">
-            {[
-              { to: "/about", icon: Info, label: "About Us" },
-              { to: "/contact", icon: Mail, label: "Contact Us" },
-              { to: "/privacy", icon: Shield, label: "Privacy Policy" },
-              { to: "/terms", icon: FileText, label: "Terms & Conditions" },
-              { to: "/disclaimer", icon: Scale, label: "Disclaimer" },
-            ].map((l) => (
-              <Link
-                key={l.to}
-                to={l.to}
-                className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-2.5 text-xs font-medium text-white shadow-md shadow-blue-500/20 transition-transform hover:-translate-y-0.5"
-              >
-                <l.icon className="w-3.5 h-3.5" /> {l.label}
-              </Link>
-            ))}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            <Link to="/about" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Info className="w-3.5 h-3.5" /> About Us
+            </Link>
+            <Link to="/contact" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Mail className="w-3.5 h-3.5" /> Contact Us
+            </Link>
+            <Link to="/privacy" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Shield className="w-3.5 h-3.5" /> Privacy Policy
+            </Link>
+            <Link to="/terms" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <FileText className="w-3.5 h-3.5" /> Terms & Conditions
+            </Link>
+            <Link to="/disclaimer" className="flex items-center gap-2 text-muted-foreground hover:text-foreground text-xs transition-colors">
+              <Scale className="w-3.5 h-3.5" /> Disclaimer
+            </Link>
           </div>
           <p className="text-center text-[10px] text-muted-foreground">
             © {new Date().getFullYear()} NeuroLearn. All rights reserved.
