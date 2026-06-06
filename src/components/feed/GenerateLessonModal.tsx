@@ -59,7 +59,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         mcq_options: lesson.mcq_options,
         mcq_answer: lesson.mcq_answer,
         difficulty: lesson.difficulty,
-        created_by: user?.id || null,
+        created_by: user.id,
       });
 
       if (insertError) throw insertError;
