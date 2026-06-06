@@ -39,6 +39,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
 
   const generate = useMutation({
     mutationFn: async () => {
+      if (!user) throw new Error("Please sign in to generate lessons");
       const { data, error } = await supabase.functions.invoke("generate-lesson", {
         body: { topic, exam_type: examType, subject },
       });
@@ -58,7 +59,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         mcq_options: lesson.mcq_options,
         mcq_answer: lesson.mcq_answer,
         difficulty: lesson.difficulty,
-        created_by: user?.id || null,
+        created_by: user.id,
       });
 
       if (insertError) throw insertError;
