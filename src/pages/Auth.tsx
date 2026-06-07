@@ -108,7 +108,7 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      const formatted = phone.startsWith("+") ? phone : `+${phone.replace(/\D/g, "")}`;
+      const formatted = `${countryCode}${phone.replace(/\D/g, "")}`;
       const { error } = await supabase.auth.verifyOtp({
         phone: formatted,
         token: otp,
