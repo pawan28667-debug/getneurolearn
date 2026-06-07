@@ -89,7 +89,7 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      const formatted = phone.startsWith("+") ? phone : `+${phone.replace(/\D/g, "")}`;
+      const formatted = `${countryCode}${phone.replace(/\D/g, "")}`;
       const { error } = await supabase.auth.signInWithOtp({ phone: formatted });
       if (error) throw error;
       setOtpSent(true);
