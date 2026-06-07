@@ -217,16 +217,31 @@ const Auth = () => {
 
           {isPhone && (
             <div className="space-y-3">
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="tel"
-                  placeholder="Mobile number (e.g. +919876543210)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={otpSent}
-                  className="pl-10 h-12 glass"
-                />
+              <div className="flex gap-2">
+                <Select value={countryCode} onValueChange={setCountryCode} disabled={otpSent}>
+                  <SelectTrigger className="w-[120px] h-12 glass">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {COUNTRY_CODES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        <span className="mr-2">{c.flag}</span>{c.code} <span className="text-muted-foreground text-xs ml-1">{c.country}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="Mobile number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    disabled={otpSent}
+                    className="pl-10 h-12 glass"
+                  />
+                </div>
               </div>
 
               {otpSent && (
