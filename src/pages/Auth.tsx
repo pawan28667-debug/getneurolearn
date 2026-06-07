@@ -6,6 +6,32 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Mail, Lock, ArrowLeft, User, Eye, EyeOff, Phone, KeyRound } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const COUNTRY_CODES = [
+  { code: "+91", country: "India", flag: "🇮🇳" },
+  { code: "+92", country: "Pakistan", flag: "🇵🇰" },
+  { code: "+1", country: "USA / Canada", flag: "🇺🇸" },
+  { code: "+44", country: "United Kingdom", flag: "🇬🇧" },
+  { code: "+61", country: "Australia", flag: "🇦🇺" },
+  { code: "+971", country: "UAE", flag: "🇦🇪" },
+  { code: "+966", country: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+880", country: "Bangladesh", flag: "🇧🇩" },
+  { code: "+94", country: "Sri Lanka", flag: "🇱🇰" },
+  { code: "+977", country: "Nepal", flag: "🇳🇵" },
+  { code: "+60", country: "Malaysia", flag: "🇲🇾" },
+  { code: "+65", country: "Singapore", flag: "🇸🇬" },
+  { code: "+86", country: "China", flag: "🇨🇳" },
+  { code: "+81", country: "Japan", flag: "🇯🇵" },
+  { code: "+49", country: "Germany", flag: "🇩🇪" },
+  { code: "+33", country: "France", flag: "🇫🇷" },
+  { code: "+39", country: "Italy", flag: "🇮🇹" },
+  { code: "+34", country: "Spain", flag: "🇪🇸" },
+  { code: "+7", country: "Russia", flag: "🇷🇺" },
+  { code: "+27", country: "South Africa", flag: "🇿🇦" },
+  { code: "+55", country: "Brazil", flag: "🇧🇷" },
+  { code: "+52", country: "Mexico", flag: "🇲🇽" },
+];
 
 type Mode = "login" | "signup" | "phone";
 
@@ -16,6 +42,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -62,7 +89,7 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      const formatted = phone.startsWith("+") ? phone : `+${phone.replace(/\D/g, "")}`;
+      const formatted = `${countryCode}${phone.replace(/\D/g, "")}`;
       const { error } = await supabase.auth.signInWithOtp({ phone: formatted });
       if (error) throw error;
       setOtpSent(true);
@@ -81,7 +108,7 @@ const Auth = () => {
     }
     setLoading(true);
     try {
-      const formatted = phone.startsWith("+") ? phone : `+${phone.replace(/\D/g, "")}`;
+      const formatted = `${countryCode}${phone.replace(/\D/g, "")}`;
       const { error } = await supabase.auth.verifyOtp({
         phone: formatted,
         token: otp,
@@ -190,16 +217,31 @@ const Auth = () => {
 
           {isPhone && (
             <div className="space-y-3">
-              <div className="relative">
-                <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="tel"
-                  placeholder="Mobile number (e.g. +919876543210)"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  disabled={otpSent}
-                  className="pl-10 h-12 glass"
-                />
+              <div className="flex gap-2">
+                <Select value={countryCode} onValueChange={setCountryCode} disabled={otpSent}>
+                  <SelectTrigger className="w-[120px] h-12 glass">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {COUNTRY_CODES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        <span className="mr-2">{c.flag}</span>{c.code} <span className="text-muted-foreground text-xs ml-1">{c.country}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="tel"
+                    inputMode="numeric"
+                    placeholder="Mobile number"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    disabled={otpSent}
+                    className="pl-10 h-12 glass"
+                  />
+                </div>
               </div>
 
               {otpSent && (
