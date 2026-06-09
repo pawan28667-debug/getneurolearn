@@ -61,7 +61,7 @@ const Contact = () => (
           <ul className="list-disc list-inside space-y-1.5 text-muted-foreground">
             <li>Bugs, glitches, or things that look weird on your screen</li>
             <li>A topic, chapter, or exam you wish we'd cover next</li>
-            <li>Account, login, or password troubles</li>
+            <li>Content questions, technical issues, or app feedback</li>
             <li>Pro plan questions, billing help, or upgrade issues</li>
             <li>Feature requests — we love these the most!</li>
             <li>Partnerships with schools, coaching centers, or teachers</li>

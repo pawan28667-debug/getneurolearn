@@ -19,7 +19,7 @@ const Privacy = () => (
 
         <section>
           <h2 className="font-display font-semibold text-blue-600 mb-1">1. What we collect</h2>
-          <p>When you sign up we save your name and email so we can build your account, sync your progress across devices, and send the occasional update. As you learn, we also remember what lessons you've watched, the streaks you're building, the quizzes you've nailed, and the topics you're crushing. That's it — nothing creepy.</p>
+          <p>NeuroLearn works without requiring an account. We may collect minimal usage data to keep the app running smoothly and improve your experience. If you choose to use features like saved lessons or analytics, we may store only the data required for that feature.</p>
         </section>
 
         <section>

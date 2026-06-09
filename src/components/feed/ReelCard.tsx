@@ -8,9 +8,9 @@ type Lesson = Tables<"lessons">;
 
 interface ReelCardProps {
   lesson: Lesson;
-  isBookmarked: boolean;
+  isBookmarked?: boolean;
   isCompleted: boolean;
-  onBookmark: () => void;
+  onBookmark?: () => void;
   onAnswer: (score: number) => void;
 }
 
@@ -110,9 +110,11 @@ const ReelCard = ({ lesson, isBookmarked, isCompleted, onBookmark, onAnswer }: R
 
             {/* Side actions */}
             <div className="flex flex-col gap-2">
-              <button onClick={onBookmark} className="p-1.5 rounded-full hover:bg-muted transition-colors">
-                {isBookmarked ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4 text-muted-foreground" />}
-              </button>
+                {onBookmark && (
+                <button onClick={onBookmark} className="p-1.5 rounded-full hover:bg-muted transition-colors">
+                  {isBookmarked ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4 text-muted-foreground" />}
+                </button>
+              )}
               <button
                 onClick={() => { navigator.share?.({ title: lesson.title, text: lesson.content }).catch(() => {}); }}
                 className="p-1.5 rounded-full hover:bg-muted transition-colors"

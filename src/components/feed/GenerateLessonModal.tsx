@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,7 +30,6 @@ interface Props {
 }
 
 const GenerateLessonModal = ({ open, onClose }: Props) => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [topic, setTopic] = useState("");
   const [examType, setExamType] = useState("general");
@@ -39,7 +37,6 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
 
   const generate = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("Please sign in to generate lessons");
       const { data, error } = await supabase.functions.invoke("generate-lesson", {
         body: { topic, exam_type: examType, subject },
       });
@@ -47,23 +44,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      const lesson = data.lesson;
-      const { error: insertError } = await supabase.from("lessons").insert({
-        title: lesson.title,
-        content: lesson.content,
-        subject,
-        exam_type: examType,
-        key_points: lesson.key_points,
-        formula: lesson.formula || null,
-        mcq_question: lesson.mcq_question,
-        mcq_options: lesson.mcq_options,
-        mcq_answer: lesson.mcq_answer,
-        difficulty: lesson.difficulty,
-        created_by: user.id,
-      });
-
-      if (insertError) throw insertError;
-      return lesson;
+      return data.lesson;
     },
     onSuccess: (lesson) => {
       toast.success(`"${lesson.title}" generated!`);

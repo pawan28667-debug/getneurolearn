@@ -48,7 +48,7 @@ const Landing = () => {
               Swipe through addictive, reel-style lessons. Ace JEE, NEET, UPSC & more with AI-powered micro-learning.
             </p>
             <button
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/feed")}
               className="gradient-primary text-primary-foreground font-display font-semibold px-8 py-3 rounded-xl text-base hover:opacity-90 transition-opacity inline-flex items-center gap-2 animate-pulse-glow"
             >
               Start Learning Free
@@ -127,7 +127,7 @@ const Landing = () => {
       <section className="px-4 pb-12">
         <div className="max-w-lg mx-auto text-center">
           <button
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/feed")}
             className="gradient-primary text-primary-foreground font-display font-semibold px-8 py-3 rounded-xl text-base hover:opacity-90 transition-opacity"
           >
             Start Learning Free

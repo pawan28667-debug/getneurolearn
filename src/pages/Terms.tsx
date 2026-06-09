@@ -19,12 +19,12 @@ const Terms = () => (
 
         <section>
           <h2 className="font-display font-semibold text-blue-600 mb-1">1. Welcome aboard</h2>
-          <p>Creating an account or using NeuroLearn in any way means you accept these terms. If anything here doesn't sit right with you, no worries — please don't use the app. We respect your choice.</p>
+          <p>Using NeuroLearn means you accept these terms. If anything here doesn't sit right with you, feel free not to use the app. We respect your choice.</p>
         </section>
 
         <section>
-          <h2 className="font-display font-semibold text-blue-600 mb-1">2. Your account, your responsibility</h2>
-          <p>Use a real email, pick a strong password, and please don't share your login with anyone. If something fishy happens with your account, tell us right away and we'll help.</p>
+          <h2 className="font-display font-semibold text-blue-600 mb-1">2. How the app works</h2>
+          <p>NeuroLearn is designed to work without requiring a login. You can access lessons, exam material, and AI study content directly. If we ever add optional account-based features, we’ll make that clear before you use them.</p>
         </section>
 
         <section>

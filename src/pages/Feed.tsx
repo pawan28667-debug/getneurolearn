@@ -1,20 +1,16 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import ReelCard from "@/components/feed/ReelCard";
 import GenerateLessonModal from "@/components/feed/GenerateLessonModal";
 import { Plus } from "lucide-react";
-import { toast } from "sonner";
 import type { Tables } from "@/integrations/supabase/types";
 
 type Lesson = Tables<"lessons">;
 
 const Feed = () => {
-  const { user } = useAuth();
   const [showGenerate, setShowGenerate] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
 
   const { data: lessons = [], isLoading } = useQuery({
     queryKey: ["lessons"],
@@ -26,74 +22,6 @@ const Feed = () => {
         .limit(50);
       if (error) throw error;
       return data as Lesson[];
-    },
-  });
-
-  const { data: bookmarkedIds = [] } = useQuery({
-    queryKey: ["bookmarks", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("bookmarks")
-        .select("lesson_id")
-        .eq("user_id", user!.id);
-      return (data || []).map((b) => b.lesson_id);
-    },
-  });
-
-  const { data: completedIds = [] } = useQuery({
-    queryKey: ["progress", user?.id],
-    enabled: !!user,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("user_progress")
-        .select("lesson_id")
-        .eq("user_id", user!.id)
-        .eq("completed", true);
-      return (data || []).map((p) => p.lesson_id);
-    },
-  });
-
-  const toggleBookmark = useMutation({
-    mutationFn: async (lessonId: string) => {
-      if (!user) {
-        toast.error("Sign in to bookmark lessons");
-        return;
-      }
-      const isBookmarked = bookmarkedIds.includes(lessonId);
-      if (isBookmarked) {
-        await supabase.from("bookmarks").delete().eq("user_id", user.id).eq("lesson_id", lessonId);
-      } else {
-        await supabase.from("bookmarks").insert({ user_id: user.id, lesson_id: lessonId });
-      }
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bookmarks"] }),
-  });
-
-  const recordProgress = useMutation({
-    mutationFn: async ({ lessonId, score }: { lessonId: string; score: number }) => {
-      if (!user) return;
-      await supabase.from("user_progress").upsert(
-        { user_id: user.id, lesson_id: lessonId, completed: true, score },
-        { onConflict: "user_id,lesson_id" }
-      );
-      // Award XP
-      const xpGain = score > 0 ? 35 : 10;
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("xp")
-        .eq("user_id", user.id)
-        .single();
-      if (profile) {
-        await supabase
-          .from("profiles")
-          .update({ xp: profile.xp + xpGain })
-          .eq("user_id", user.id);
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["progress"] });
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
   });
 
@@ -134,10 +62,9 @@ const Feed = () => {
           <ReelCard
             key={lesson.id}
             lesson={lesson}
-            isBookmarked={bookmarkedIds.includes(lesson.id)}
-            isCompleted={completedIds.includes(lesson.id)}
-            onBookmark={() => toggleBookmark.mutate(lesson.id)}
-            onAnswer={(score) => recordProgress.mutate({ lessonId: lesson.id, score })}
+            isBookmarked={false}
+            isCompleted={false}
+            onAnswer={() => {}}
           />
         ))}
       </div>

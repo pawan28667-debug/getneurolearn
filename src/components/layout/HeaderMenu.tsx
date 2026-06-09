@@ -8,7 +8,6 @@ const menuItems = [
   { label: "Contact Us", to: "/contact", highlight: true },
   { label: "About Us", to: "/about", highlight: true },
   { label: "Pricing", href: "/#pricing", highlight: true },
-  { label: "Sign Up", to: "/auth" },
 ];
 
 type HeaderMenuProps = {

@@ -11,7 +11,11 @@ serve(async (req) => {
   try {
     const { topic, exam_type, subject } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("Supabase service role env is not configured");
 
     const systemPrompt = `You are an expert Indian education content creator. Generate a micro-lesson (30-60 second read) for competitive exam preparation. 
 Return ONLY valid JSON with this exact structure:
@@ -97,7 +101,6 @@ Make it perfect for Indian competitive exam students.`;
     if (toolCall) {
       lesson = JSON.parse(toolCall.function.arguments);
     } else {
-      // Fallback: parse from content
       const content = data.choices?.[0]?.message?.content || "";
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -107,7 +110,39 @@ Make it perfect for Indian competitive exam students.`;
       }
     }
 
-    return new Response(JSON.stringify({ lesson }), {
+    const insertResponse = await fetch(`${SUPABASE_URL}/rest/v1/lessons?select=*`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_SERVICE_ROLE_KEY,
+        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      },
+      body: JSON.stringify({
+        title: lesson.title,
+        content: lesson.content,
+        subject,
+        exam_type,
+        key_points: lesson.key_points,
+        formula: lesson.formula ?? null,
+        mcq_question: lesson.mcq_question,
+        mcq_options: lesson.mcq_options,
+        mcq_answer: lesson.mcq_answer,
+        difficulty: lesson.difficulty,
+        created_by: null,
+      }),
+    });
+
+    if (!insertResponse.ok) {
+      const text = await insertResponse.text();
+      console.error("Supabase insert error:", insertResponse.status, text);
+      throw new Error("Failed to save generated lesson");
+    }
+
+    const inserted = await insertResponse.json();
+    const savedLesson = Array.isArray(inserted) ? inserted[0] : inserted;
+
+    return new Response(JSON.stringify({ lesson: savedLesson }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
