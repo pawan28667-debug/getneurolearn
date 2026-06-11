@@ -7,149 +7,110 @@ const corsHeaders = {
 
 type ContentType = "notes" | "questions" | "mock";
 
+interface ContentRequest {
+  chapter: string;
+  subject: string;
+  exam_type: string;
+  content_type: ContentType;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { chapter, subject, exam, classLevel, type } = await req.json() as {
-      chapter: string; subject: string; exam: string; classLevel: string; type: ContentType;
-    };
+    const { chapter, subject, exam_type, content_type } = await req.json() as ContentRequest;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
-    const context = `Chapter: "${chapter}"\nSubject: ${subject}\nExam: ${exam}\nClass/Level: ${classLevel}`;
-
-    let systemPrompt = "";
-    let userPrompt = "";
-    let tool: any;
-
-    if (type === "notes") {
-      systemPrompt = `You are an expert Indian exam coach. Generate comprehensive, exam-focused study notes for a chapter. Use clear structure, formulas, definitions, examples, and tips. Return valid JSON only.`;
-      userPrompt = `${context}\n\nGenerate detailed study notes (600-900 words) with:\n- Full explanation in markdown (use **bold**, bullet points, headings).\n- 8-12 quick revision points.\n- 4-8 important formulas/facts (or [] if not applicable).`;
-      tool = {
-        name: "create_notes",
-        description: "Create chapter notes",
-        parameters: {
-          type: "object",
-          properties: {
-            content: { type: "string" },
-            key_points: { type: "array", items: { type: "string" } },
-            formulas: { type: "array", items: { type: "string" } },
-          },
-          required: ["content", "key_points", "formulas"],
-          additionalProperties: false,
-        },
-      };
-    } else if (type === "questions") {
-      systemPrompt = `You are an expert Indian exam question setter. Generate practice MCQs with explanations. Return valid JSON only.`;
-      userPrompt = `${context}\n\nGenerate 8 high-quality MCQs (mix of Easy/Medium/Hard) covering this chapter. Each MCQ: question, 4 options, correct answer (0-based index), difficulty, and brief explanation.`;
-      tool = {
-        name: "create_questions",
-        description: "Create practice MCQs",
-        parameters: {
-          type: "object",
-          properties: {
-            questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  question: { type: "string" },
-                  options: { type: "array", items: { type: "string" } },
-                  answer: { type: "integer" },
-                  difficulty: { type: "string", enum: ["Easy", "Medium", "Hard"] },
-                  explanation: { type: "string" },
-                },
-                required: ["question", "options", "answer", "difficulty", "explanation"],
-                additionalProperties: false,
-              },
-            },
-          },
-          required: ["questions"],
-          additionalProperties: false,
-        },
-      };
-    } else {
-      systemPrompt = `You are an expert Indian exam mock test designer. Generate a timed mock test. Return valid JSON only.`;
-      userPrompt = `${context}\n\nGenerate a 15-question mock test for this chapter (mix difficulties — roughly 5 Easy, 7 Medium, 3 Hard). Each: question, 4 options, correct answer index, difficulty, explanation.`;
-      tool = {
-        name: "create_mock",
-        description: "Create mock test",
-        parameters: {
-          type: "object",
-          properties: {
-            questions: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  question: { type: "string" },
-                  options: { type: "array", items: { type: "string" } },
-                  answer: { type: "integer" },
-                  difficulty: { type: "string", enum: ["Easy", "Medium", "Hard"] },
-                  explanation: { type: "string" },
-                },
-                required: ["question", "options", "answer", "difficulty", "explanation"],
-                additionalProperties: false,
-              },
-            },
-          },
-          required: ["questions"],
-          additionalProperties: false,
-        },
-      };
+    // Validate input
+    if (!chapter || !subject || !exam_type || !content_type) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: chapter, subject, exam_type, content_type" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openaiApiKey) {
+      return new Response(
+        JSON.stringify({ error: "OpenAI API key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    let prompt = "";
+    if (content_type === "notes") {
+      prompt = `Create comprehensive study notes for:
+Chapter: ${chapter}
+Subject: ${subject}
+Exam Type: ${exam_type}
+
+Provide detailed, well-organized notes with clear explanations and important points highlighted.`;
+    } else if (content_type === "questions") {
+      prompt = `Generate 10 practice questions for:
+Chapter: ${chapter}
+Subject: ${subject}
+Exam Type: ${exam_type}
+
+Format as JSON with "questions" array containing objects with "question", "options", and "correct_answer" fields.`;
+    } else if (content_type === "mock") {
+      prompt = `Create a mock test covering:
+Chapter: ${chapter}
+Subject: ${subject}
+Exam Type: ${exam_type}
+
+Generate 20 multiple-choice questions in JSON format with difficulty increasing progressively.`;
+    }
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      headers: {
+        "Authorization": `Bearer ${openaiApiKey}`,
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          {
+            role: "system",
+            content: "You are an expert educational content creator specializing in exam preparation. Provide accurate, well-structured content.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
         ],
-        tools: [{ type: "function", function: tool }],
-        tool_choice: { type: "function", function: { name: tool.name } },
+        temperature: 0.7,
+        max_tokens: 3000,
       }),
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      throw new Error("AI generation failed");
+      const error = await response.text();
+      console.error("OpenAI API error:", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to generate content from OpenAI" }),
+        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let result;
-    if (toolCall) {
-      result = JSON.parse(toolCall.function.arguments);
-    } else {
-      const content = data.choices?.[0]?.message?.content || "";
-      const m = content.match(/\{[\s\S]*\}/);
-      if (!m) throw new Error("Failed to parse AI response");
-      result = JSON.parse(m[0]);
+    const content = data.choices[0]?.message?.content;
+
+    if (!content) {
+      return new Response(
+        JSON.stringify({ error: "No content received from OpenAI" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    return new Response(JSON.stringify({ result, type }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("generate-study-content error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ content, type: content_type }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });

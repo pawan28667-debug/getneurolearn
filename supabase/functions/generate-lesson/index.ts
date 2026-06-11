@@ -5,151 +5,124 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+interface LessonRequest {
+  topic: string;
+  exam_type: string;
+  subject: string;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { topic, exam_type, subject } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const { topic, exam_type, subject } = await req.json() as LessonRequest;
 
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("Supabase service role env is not configured");
+    // Validate input
+    if (!topic || !exam_type || !subject) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: topic, exam_type, subject" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    const systemPrompt = `You are an expert Indian education content creator. Generate a micro-lesson (30-60 second read) for competitive exam preparation. 
-Return ONLY valid JSON with this exact structure:
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openaiApiKey) {
+      return new Response(
+        JSON.stringify({ error: "OpenAI API key not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const prompt = `Create a comprehensive study lesson for the following:
+Topic: ${topic}
+Subject: ${subject}
+Exam Type: ${exam_type}
+
+Please provide the lesson in the following JSON format:
 {
-  "title": "catchy title under 60 chars",
-  "content": "clear, concise explanation in 2-3 short paragraphs. Use simple language.",
+  "title": "Lesson Title",
+  "content": "Detailed lesson content with explanations",
   "key_points": ["point 1", "point 2", "point 3"],
-  "formula": "relevant formula if applicable, or null",
-  "mcq_question": "a quiz question testing the concept",
-  "mcq_options": ["option A", "option B", "option C", "option D"],
-  "mcq_answer": 0,
-  "difficulty": "easy|medium|hard"
+  "examples": ["example 1", "example 2"],
+  "practice_questions": [
+    {
+      "question": "Question text",
+      "options": ["A", "B", "C", "D"],
+      "correct_answer": "A"
+    }
+  ]
 }
-mcq_answer is the 0-based index of the correct option.`;
 
-    const userPrompt = `Create a micro-lesson on: "${topic}"
-Subject: ${subject || "General"}
-Exam: ${exam_type || "General"}
-Make it perfect for Indian competitive exam students.`;
+Make sure the content is accurate, well-structured, and appropriate for ${exam_type} exam preparation.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${openaiApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [
           {
-            type: "function",
-            function: {
-              name: "create_lesson",
-              description: "Create a structured micro-lesson for exam preparation",
-              parameters: {
-                type: "object",
-                properties: {
-                  title: { type: "string" },
-                  content: { type: "string" },
-                  key_points: { type: "array", items: { type: "string" } },
-                  formula: { type: "string", nullable: true },
-                  mcq_question: { type: "string" },
-                  mcq_options: { type: "array", items: { type: "string" } },
-                  mcq_answer: { type: "integer" },
-                  difficulty: { type: "string", enum: ["easy", "medium", "hard"] },
-                },
-                required: ["title", "content", "key_points", "mcq_question", "mcq_options", "mcq_answer", "difficulty"],
-                additionalProperties: false,
-              },
-            },
+            role: "system",
+            content: "You are an expert educational content creator. Always respond with valid JSON that matches the requested format exactly.",
+          },
+          {
+            role: "user",
+            content: prompt,
           },
         ],
-        tool_choice: { type: "function", function: { name: "create_lesson" } },
+        temperature: 0.7,
+        max_tokens: 2000,
       }),
     });
 
     if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please try again in a moment." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      throw new Error("AI generation failed");
+      const error = await response.text();
+      console.error("OpenAI API error:", error);
+      return new Response(
+        JSON.stringify({ error: "Failed to generate lesson from OpenAI" }),
+        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    let lesson;
+    const content = data.choices[0]?.message?.content;
 
-    if (toolCall) {
-      lesson = JSON.parse(toolCall.function.arguments);
-    } else {
-      const content = data.choices?.[0]?.message?.content || "";
+    if (!content) {
+      return new Response(
+        JSON.stringify({ error: "No content received from OpenAI" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Parse the JSON response from OpenAI
+    let lesson;
+    try {
+      // Extract JSON from the response (sometimes OpenAI wraps it in markdown)
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         lesson = JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error("Failed to parse AI response");
+        lesson = JSON.parse(content);
       }
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON response from OpenAI" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    const insertResponse = await fetch(`${SUPABASE_URL}/rest/v1/lessons?select=*`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_SERVICE_ROLE_KEY,
-        Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
-        "Content-Type": "application/json",
-        Prefer: "return=representation",
-      },
-      body: JSON.stringify({
-        title: lesson.title,
-        content: lesson.content,
-        subject,
-        exam_type,
-        key_points: lesson.key_points,
-        formula: lesson.formula ?? null,
-        mcq_question: lesson.mcq_question,
-        mcq_options: lesson.mcq_options,
-        mcq_answer: lesson.mcq_answer,
-        difficulty: lesson.difficulty,
-        created_by: null,
-      }),
-    });
-
-    if (!insertResponse.ok) {
-      const text = await insertResponse.text();
-      console.error("Supabase insert error:", insertResponse.status, text);
-      throw new Error("Failed to save generated lesson");
-    }
-
-    const inserted = await insertResponse.json();
-    const savedLesson = Array.isArray(inserted) ? inserted[0] : inserted;
-
-    return new Response(JSON.stringify({ lesson: savedLesson }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("generate-lesson error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ lesson }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  } catch (error) {
+    console.error("Error:", error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 });
