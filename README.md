@@ -1,3 +1,3 @@
-# Welcome to your Lovable project
+# getneurolearn
 
 TODO: Document your project here
