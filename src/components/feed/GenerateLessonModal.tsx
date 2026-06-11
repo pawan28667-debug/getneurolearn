@@ -53,23 +53,60 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
 
   const generate = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.functions.invoke("generate-lesson", {
-        body: { topic, exam_type: examType, subject },
-      });
+      console.log("🚀 Starting lesson generation for:", { topic, examType, subject });
+      
+      try {
+        const { data, error } = await supabase.functions.invoke("generate-lesson", {
+          body: { topic, exam_type: examType, subject },
+        });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+        console.log("📡 Supabase function response:", { data, error });
 
-      return data.lesson;
+        if (error) {
+          console.error("❌ Supabase error:", error);
+          throw error;
+        }
+        
+        if (data?.error) {
+          console.error("❌ API error:", data.error);
+          throw new Error(data.error);
+        }
+
+        if (!data?.lesson) {
+          console.error("❌ No lesson in response:", data);
+          throw new Error("No lesson data received from server");
+        }
+
+        console.log("✅ Lesson generated successfully:", data.lesson);
+        return data.lesson;
+      } catch (err) {
+        const errorMsg = err instanceof Error ? err.message : String(err);
+        console.error("❌ Generation failed:", errorMsg);
+        throw err;
+      }
     },
     onSuccess: (lesson: GeneratedLesson) => {
-      console.log("Generated lesson:", lesson);
+      console.log("✅ Generated lesson:", lesson);
       setGeneratedLesson(lesson);
       setStep("review");
     },
     onError: (err: Error) => {
-      console.error("Generation error:", err);
-      toast.error(`Error: ${err.message}`);
+      console.error("❌ Generation error:", err);
+      const errorMessage = err.message || "Unknown error occurred";
+      
+      // Provide helpful error messages
+      let userMessage = errorMessage;
+      if (errorMessage.includes("API key")) {
+        userMessage = "❌ OpenAI API key not configured. Check SUPABASE_ENV_SETUP.md";
+      } else if (errorMessage.includes("401") || errorMessage.includes("Unauthorized")) {
+        userMessage = "❌ Invalid or expired OpenAI API key. Check your key in Supabase Settings.";
+      } else if (errorMessage.includes("429")) {
+        userMessage = "❌ OpenAI API rate limit reached. Try again in a moment.";
+      } else if (errorMessage.includes("JSON")) {
+        userMessage = "❌ Invalid response format from OpenAI. Check your API key quota.";
+      }
+      
+      toast.error(userMessage);
       setStep("input");
     },
   });
@@ -78,6 +115,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
     mutationFn: async () => {
       if (!generatedLesson) throw new Error("No lesson to save");
 
+      console.log("💾 Saving lesson to database...");
       const { data: user } = await supabase.auth.getUser();
       
       // Get first practice question if available
@@ -111,16 +149,24 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         created_by: user.user?.id || null,
       };
 
+      console.log("📝 Lesson data to save:", lessonData);
+
       const { data, error } = await supabase
         .from("lessons")
         .insert([lessonData])
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("❌ Database error:", error);
+        throw error;
+      }
+      
+      console.log("✅ Lesson saved:", data);
       return data;
     },
     onSuccess: () => {
+      console.log("✅ Lesson saved successfully!");
       toast.success(`"${generatedLesson?.title}" saved to your feed!`);
       queryClient.invalidateQueries({ queryKey: ["lessons"] });
       setTopic("");
@@ -129,7 +175,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
       onClose();
     },
     onError: (err: Error) => {
-      console.error("Save error:", err);
+      console.error("❌ Save error:", err);
       toast.error(`Failed to save: ${err.message}`);
     },
   });
