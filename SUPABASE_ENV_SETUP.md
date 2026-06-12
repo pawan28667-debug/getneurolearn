@@ -44,7 +44,7 @@ If you're running Supabase locally:
 
 3. **Set Environment Variables**
    ```bash
-   supabase secrets set OPENAI_API_KEY="sk-proj-your-key"
+   supabase secrets set OPENAI_API_KEY="sk-your-openai-api-key"
    ```
 
 4. **Restart Dev Server**
@@ -58,7 +58,7 @@ For local testing only (not recommended for production):
 
 1. Create `.env.local` file in project root:
    ```
-   OPENAI_API_KEY="sk-proj-your-key"
+   OPENAI_API_KEY="sk-your-openai-api-key"
    ```
 
 2. Make sure `.env.local` is in `.gitignore` (it is ✓)
