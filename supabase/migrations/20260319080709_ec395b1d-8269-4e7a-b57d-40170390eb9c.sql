@@ -51,7 +51,7 @@ CREATE TABLE public.lessons (
 );
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Lessons viewable by everyone" ON public.lessons FOR SELECT USING (true);
-CREATE POLICY "Authenticated users can create lessons" ON public.lessons FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+CREATE POLICY "Anyone can add lessons" ON public.lessons FOR INSERT WITH CHECK (true);
 
 -- User progress table
 CREATE TABLE public.user_progress (

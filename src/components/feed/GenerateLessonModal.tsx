@@ -116,7 +116,10 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
       if (!generatedLesson) throw new Error("No lesson to save");
 
       console.log("💾 Saving lesson to database...");
-      const { data: user } = await supabase.auth.getUser();
+      const { data: user, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.warn("⚠️ Could not fetch user session while saving lesson:", userError);
+      }
       
       // Get first practice question if available
       let mcqQuestion = null;
@@ -135,7 +138,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
           : 0;
       }
 
-      const lessonData = {
+        const lessonData: Record<string, unknown> = {
         title: generatedLesson.title,
         subject,
         exam_type: examType,
@@ -146,8 +149,11 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         mcq_options: mcqOptions,
         mcq_answer: mcqAnswer,
         difficulty: "medium",
-        created_by: user.user?.id || null,
       };
+
+      if (user.user?.id) {
+        lessonData.created_by = user.user.id;
+      }
 
       console.log("📝 Lesson data to save:", lessonData);
 
