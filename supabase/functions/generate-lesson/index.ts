@@ -2,7 +2,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Credentials": "true",
 };
 
 interface LessonRequest {
@@ -97,19 +99,26 @@ Make sure the content is accurate, well-structured, and appropriate for ${exam_t
       );
     }
 
-    // Parse the JSON response from OpenAI
+    const normalize = (text: string) => text.trim().replace(/^```(?:json)?\s*/i, "").replace(/```$/, "");
+    const extractJson = (text: string) => {
+      const normalized = normalize(text);
+      const start = normalized.indexOf("{");
+      const end = normalized.lastIndexOf("}");
+      if (start === -1 || end === -1) return null;
+      return normalized.slice(start, end + 1);
+    };
+
     let lesson;
     try {
-      // Extract JSON from the response (sometimes OpenAI wraps it in markdown)
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        lesson = JSON.parse(jsonMatch[0]);
-      } else {
-        lesson = JSON.parse(content);
-      }
-    } catch {
+      const jsonString = extractJson(content) ?? normalize(content);
+      lesson = JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error("Invalid JSON response from OpenAI:", {
+        rawContent: content,
+        parseError: parseError instanceof Error ? parseError.message : String(parseError),
+      });
       return new Response(
-        JSON.stringify({ error: "Invalid JSON response from OpenAI" }),
+        JSON.stringify({ error: "Invalid JSON response from OpenAI. Please check the OpenAI output format." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
