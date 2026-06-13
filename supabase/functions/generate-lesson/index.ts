@@ -57,39 +57,62 @@ Please provide the lesson in the following JSON format:
 
 Make sure the content is accurate, well-structured, and appropriate for ${exam_type} exam preparation.`;
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${openaiApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        messages: [
-          {
-            role: "system",
-            content: "You are an expert educational content creator. Always respond with valid JSON that matches the requested format exactly.",
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-      }),
-    });
+    // Try primary model, fall back to alternative if it fails
+    const models = ["gpt-4o-mini", "gpt-4-turbo"];
+    let data: any = null;
+    let response: Response | null = null;
+    let lastErrorText = "";
+    let usedModel = models[0];
 
-    if (!response.ok) {
-      const error = await response.text();
-      console.error("OpenAI API error:", error);
+    for (const model of models) {
+      usedModel = model;
+      try {
+        response = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${openaiApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: "system",
+                content: "You are an expert educational content creator. Always respond with valid JSON that matches the requested format exactly.",
+              },
+              {
+                role: "user",
+                content: prompt,
+              },
+            ],
+            temperature: 0.7,
+            max_tokens: 2000,
+          }),
+        });
+
+        if (!response.ok) {
+          lastErrorText = await response.text();
+          console.warn(`OpenAI API returned ${response.status} for model ${model}:`, lastErrorText);
+          // try next model
+          continue;
+        }
+
+        data = await response.json();
+        break;
+      } catch (fetchErr) {
+        lastErrorText = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+        console.error(`Error calling OpenAI with model ${model}:`, lastErrorText);
+        // try next model
+        continue;
+      }
+    }
+    if (!data) {
       return new Response(
-        JSON.stringify({ error: "Failed to generate lesson from OpenAI" }),
-        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Failed to generate lesson from OpenAI", details: lastErrorText, attempted_model: usedModel }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const data = await response.json();
     const content = data.choices[0]?.message?.content;
 
     if (!content) {

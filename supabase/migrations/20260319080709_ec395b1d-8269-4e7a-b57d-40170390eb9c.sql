@@ -51,7 +51,14 @@ CREATE TABLE public.lessons (
 );
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Lessons viewable by everyone" ON public.lessons FOR SELECT USING (true);
-CREATE POLICY "Anyone can add lessons" ON public.lessons FOR INSERT WITH CHECK (true);
+
+-- Allow inserts from authenticated users where `created_by` matches `auth.uid()`,
+-- or allow anonymous inserts (created_by IS NULL). This prevents RLS failures
+-- when the client is not authenticated but still wants to add lessons.
+DROP POLICY IF EXISTS "Anyone can add lessons" ON public.lessons;
+CREATE POLICY "Anyone can add lessons" ON public.lessons
+  FOR INSERT
+  WITH CHECK (created_by IS NULL OR created_by = auth.uid());
 
 -- User progress table
 CREATE TABLE public.user_progress (
