@@ -159,7 +159,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
 
       const { data, error } = await supabase
         .from("lessons")
-        .insert([lessonData])
+        .insert([lessonData as never])
         .select()
         .single();
 
