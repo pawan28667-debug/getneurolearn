@@ -22,8 +22,27 @@ import StudyClasses from "@/pages/StudyClasses";
 import StudyChapters from "@/pages/StudyChapters";
 import StudyChapterDetail from "@/pages/StudyChapterDetail";
 import Blogs from "@/pages/Blogs";
+import BlogDetail from "@/pages/BlogDetail";
+import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
+
+const ResetAiLessonsOnLoad = () => {
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        await supabase.from("lessons").delete().eq("created_by", user.id);
+        queryClient.invalidateQueries();
+      } catch (e) {
+        console.warn("Could not reset AI lessons:", e);
+      }
+    })();
+  }, []);
+  return null;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -31,6 +50,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ResetAiLessonsOnLoad />
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/index" element={<Landing />} />
@@ -50,7 +70,8 @@ const App = () => (
             <Route path="/study/:examType/:subject/:classLevel/:chapterId" element={<StudyChapterDetail />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs" element={<Blogs />} />
+          <Route path="/blogs/:slug" element={<BlogDetail />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
