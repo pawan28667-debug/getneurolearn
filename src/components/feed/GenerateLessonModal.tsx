@@ -152,9 +152,8 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         difficulty: "medium",
       };
 
-      if (user.user?.id) {
-        lessonData.created_by = user.user.id;
-      }
+      lessonData.created_by = userId;
+
 
       console.log("📝 Lesson data to save:", lessonData);
 
