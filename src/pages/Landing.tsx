@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Sparkles, BookOpen, Brain, Zap, Trophy, ArrowRight, Shield, FileText, Mail, Info, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 import HeaderMenu from "@/components/layout/HeaderMenu";
+import AccountNameDialog from "@/components/AccountNameDialog";
 
 const features = [
   { icon: Sparkles, title: "60-Second Lessons", desc: "Bite-sized, reel-style learning that sticks" },
@@ -12,6 +14,8 @@ const features = [
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [nameOpen, setNameOpen] = useState(false);
+
 
   return (
     <div className="min-h-screen bg-background">
