@@ -116,11 +116,12 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
       if (!generatedLesson) throw new Error("No lesson to save");
 
       console.log("💾 Saving lesson to database...");
-      const { data: user, error: userError } = await supabase.auth.getUser();
-      if (userError) {
-        console.warn("⚠️ Could not fetch user session while saving lesson:", userError);
+      const { data: userRes, error: userError } = await supabase.auth.getUser();
+      if (userError || !userRes.user) {
+        throw new Error("You must be signed in to save AI lessons. Please log in and try again.");
       }
-      
+      const userId = userRes.user.id;
+
       // Get first practice question if available
       let mcqQuestion = null;
       let mcqOptions = [];
@@ -130,15 +131,15 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         const firstQuestion = generatedLesson.practice_questions[0];
         mcqQuestion = firstQuestion.question;
         mcqOptions = firstQuestion.options;
-        
-        // Find the index of correct answer
+
         const correctOption = firstQuestion.correct_answer;
-        mcqAnswer = mcqOptions.indexOf(correctOption) >= 0 
-          ? mcqOptions.indexOf(correctOption) 
+        mcqAnswer = mcqOptions.indexOf(correctOption) >= 0
+          ? mcqOptions.indexOf(correctOption)
           : 0;
       }
 
-        const lessonData: Record<string, unknown> = {
+      const lessonData: Record<string, unknown> = {
+
         title: generatedLesson.title,
         subject,
         exam_type: examType,
@@ -151,9 +152,8 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         difficulty: "medium",
       };
 
-      if (user.user?.id) {
-        lessonData.created_by = user.user.id;
-      }
+      lessonData.created_by = userId;
+
 
       console.log("📝 Lesson data to save:", lessonData);
 

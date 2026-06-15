@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Sparkles, BookOpen, Brain, Zap, Trophy, ArrowRight, Shield, FileText, Mail, Info, Scale } from "lucide-react";
 import { motion } from "framer-motion";
 import HeaderMenu from "@/components/layout/HeaderMenu";
+import AccountNameDialog from "@/components/AccountNameDialog";
 
 const features = [
   { icon: Sparkles, title: "60-Second Lessons", desc: "Bite-sized, reel-style learning that sticks" },
@@ -12,6 +14,8 @@ const features = [
 
 const Landing = () => {
   const navigate = useNavigate();
+  const [nameOpen, setNameOpen] = useState(false);
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -48,7 +52,7 @@ const Landing = () => {
               Swipe through addictive, reel-style lessons. Ace JEE, NEET, UPSC & more with AI-powered micro-learning.
             </p>
             <button
-              onClick={() => navigate("/feed")}
+              onClick={() => setNameOpen(true)}
               className="gradient-primary text-primary-foreground font-display font-semibold px-8 py-3 rounded-xl text-base hover:opacity-90 transition-opacity inline-flex items-center gap-2 animate-pulse-glow"
             >
               Start Learning Free
@@ -127,7 +131,7 @@ const Landing = () => {
       <section className="px-4 pb-12">
         <div className="max-w-lg mx-auto text-center">
           <button
-            onClick={() => navigate("/feed")}
+            onClick={() => setNameOpen(true)}
             className="gradient-primary text-primary-foreground font-display font-semibold px-8 py-3 rounded-xl text-base hover:opacity-90 transition-opacity"
           >
             Start Learning Free
@@ -169,8 +173,10 @@ const Landing = () => {
           </p>
         </div>
       </footer>
+      <AccountNameDialog open={nameOpen} onClose={() => setNameOpen(false)} />
     </div>
   );
 };
+
 
 export default Landing;
