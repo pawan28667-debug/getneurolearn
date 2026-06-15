@@ -34,6 +34,7 @@ interface GeneratedLesson {
   title: string;
   content: string;
   key_points?: string[];
+  formula?: string;
   examples?: string[];
   practice_questions?: Array<{
     question: string;
