@@ -30,19 +30,29 @@ const queryClient = new QueryClient();
 
 const ResetAiLessonsOnLoad = () => {
   useEffect(() => {
-    (async () => {
+    const reset = async (userId: string) => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        await supabase.from("lessons").delete().eq("created_by", user.id);
+        await supabase.from("lessons").delete().eq("created_by", userId);
         queryClient.invalidateQueries();
       } catch (e) {
         console.warn("Could not reset AI lessons:", e);
       }
-    })();
+    };
+
+    // Run once on app load if already signed in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) reset(user.id);
+    });
+
+    // Also run on every fresh sign-in within this session
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" && session?.user) reset(session.user.id);
+    });
+    return () => subscription.unsubscribe();
   }, []);
   return null;
 };
+
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
