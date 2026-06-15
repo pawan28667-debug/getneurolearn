@@ -173,8 +173,10 @@ const Landing = () => {
           </p>
         </div>
       </footer>
+      <AccountNameDialog open={nameOpen} onClose={() => setNameOpen(false)} />
     </div>
   );
 };
+
 
 export default Landing;
