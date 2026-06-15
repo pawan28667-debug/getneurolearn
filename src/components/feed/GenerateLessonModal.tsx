@@ -34,6 +34,7 @@ interface GeneratedLesson {
   title: string;
   content: string;
   key_points?: string[];
+  formula?: string;
   examples?: string[];
   practice_questions?: Array<{
     question: string;
@@ -145,7 +146,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         exam_type: examType,
         content: generatedLesson.content,
         key_points: generatedLesson.key_points || [],
-        formula: null,
+        formula: generatedLesson.formula?.trim() ? generatedLesson.formula : null,
         mcq_question: mcqQuestion,
         mcq_options: mcqOptions,
         mcq_answer: mcqAnswer,
