@@ -35,27 +35,33 @@ serve(async (req) => {
       );
     }
 
-    const prompt = `Create a comprehensive study lesson for the following:
+    const prompt = `Create a comprehensive, well-structured study lesson for an Indian exam aspirant.
 Topic: ${topic}
 Subject: ${subject}
 Exam Type: ${exam_type}
 
-Please provide the lesson in the following JSON format:
+Return STRICT JSON in exactly this shape (no markdown, no commentary):
 {
-  "title": "Lesson Title",
-  "content": "Detailed lesson content with explanations",
-  "key_points": ["point 1", "point 2", "point 3"],
-  "examples": ["example 1", "example 2"],
+  "title": "Concise lesson title (max 8 words)",
+  "content": "A rich 2-3 paragraph explanation (200-280 words total). First paragraph: clear definitions and the relationship between core concepts. Second paragraph: deeper analysis, how to apply it, and common pitfalls. Optional third paragraph: insight or analogy that helps memory. Separate paragraphs with a blank line (\\n\\n). Use plain text only.",
+  "key_points": ["4 to 6 crisp, exam-ready bullet points, each one sentence"],
+  "formula": "Most important formula(s) for the topic in plain text (e.g. 'Cube: V = a³ | Cylinder: V = πr²h | Cone: V = (1/3)πr²h'). Return an empty string if the topic has no formula.",
+  "examples": ["2-3 short worked examples or applications, each 1-2 sentences"],
   "practice_questions": [
     {
-      "question": "Question text",
-      "options": ["A", "B", "C", "D"],
-      "correct_answer": "A"
+      "question": "Exam-style MCQ on the topic",
+      "options": ["option A", "option B", "option C", "option D"],
+      "correct_answer": "exact text of the correct option"
     }
   ]
 }
 
-Make sure the content is accurate, well-structured, and appropriate for ${exam_type} exam preparation.`;
+Rules:
+- Tailor difficulty and terminology to ${exam_type}.
+- Content must read like premium study notes: structured notes, analysis & insights, deep-dive explanation.
+- Generate 3 practice MCQs of increasing difficulty.
+- "correct_answer" MUST exactly match one of the strings in "options".
+- Do NOT wrap the JSON in code fences.`;
 
     // Try primary model, fall back to alternative if it fails
     const models = ["gpt-4o-mini", "gpt-4-turbo"];
@@ -78,7 +84,7 @@ Make sure the content is accurate, well-structured, and appropriate for ${exam_t
             messages: [
               {
                 role: "system",
-                content: "You are an expert educational content creator. Always respond with valid JSON that matches the requested format exactly.",
+                content: "You are an expert Indian-exam educator (JEE/NEET/UPSC/SSC/Boards). You produce structured, accurate study notes with deep insights. Always respond with valid JSON only — no prose, no markdown fences.",
               },
               {
                 role: "user",
@@ -86,7 +92,8 @@ Make sure the content is accurate, well-structured, and appropriate for ${exam_t
               },
             ],
             temperature: 0.7,
-            max_tokens: 2000,
+            max_tokens: 3000,
+            response_format: { type: "json_object" },
           }),
         });
 
