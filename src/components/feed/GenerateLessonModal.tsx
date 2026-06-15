@@ -146,7 +146,7 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
         exam_type: examType,
         content: generatedLesson.content,
         key_points: generatedLesson.key_points || [],
-        formula: null,
+        formula: generatedLesson.formula?.trim() ? generatedLesson.formula : null,
         mcq_question: mcqQuestion,
         mcq_options: mcqOptions,
         mcq_answer: mcqAnswer,
