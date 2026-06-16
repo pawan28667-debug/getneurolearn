@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import ReelCard from "@/components/feed/ReelCard";
 import { ArrowLeft } from "lucide-react";
+import { lessonsByExam, type LocalLesson } from "@/lib/localStore";
+import type { Tables } from "@/integrations/supabase/types";
 
 const examNames: Record<string, string> = {
   jee_main: "JEE Main",
@@ -13,22 +14,37 @@ const examNames: Record<string, string> = {
   boards: "Board Exams",
 };
 
+const toLessonRow = (l: LocalLesson): Tables<"lessons"> => ({
+  id: l.id,
+  title: l.title,
+  subject: l.subject,
+  exam_type: l.exam_type,
+  content: l.content,
+  key_points: l.key_points,
+  formula: l.formula,
+  mcq_question: l.mcq_question,
+  mcq_options: l.mcq_options,
+  mcq_answer: l.mcq_answer,
+  difficulty: l.difficulty as Tables<"lessons">["difficulty"],
+  created_at: l.created_at,
+  created_by: null,
+  updated_at: l.created_at,
+  estimated_minutes: 3,
+  tags: [],
+  source: "ai",
+} as unknown as Tables<"lessons">);
+
 const ExamFeed = () => {
   const { examType } = useParams();
   const navigate = useNavigate();
+  const [lessons, setLessons] = useState<LocalLesson[]>([]);
 
-  const { data: lessons = [], isLoading } = useQuery({
-    queryKey: ["lessons", examType],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("lessons")
-        .select("*")
-        .eq("exam_type", examType!)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
-  });
+  useEffect(() => {
+    const refresh = () => setLessons(lessonsByExam(examType || ""));
+    refresh();
+    window.addEventListener("nl-lessons-change", refresh);
+    return () => window.removeEventListener("nl-lessons-change", refresh);
+  }, [examType]);
 
   return (
     <div>
@@ -39,11 +55,7 @@ const ExamFeed = () => {
         <h2 className="font-display font-bold text-lg">{examNames[examType!] || examType}</h2>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center min-h-[50vh]">
-          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : lessons.length === 0 ? (
+      {lessons.length === 0 ? (
         <div className="text-center px-4 py-20">
           <p className="font-display font-semibold text-lg mb-2">No lessons yet</p>
           <p className="text-muted-foreground text-sm">Generate lessons for {examNames[examType!]} from the Feed</p>
@@ -53,7 +65,7 @@ const ExamFeed = () => {
           {lessons.map((lesson) => (
             <ReelCard
               key={lesson.id}
-              lesson={lesson}
+              lesson={toLessonRow(lesson)}
               isBookmarked={false}
               isCompleted={false}
               onAnswer={() => {}}
