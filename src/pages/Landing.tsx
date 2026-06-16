@@ -4,7 +4,7 @@ import { Sparkles, BookOpen, Brain, Zap, Trophy, ArrowRight, Shield, FileText, M
 import { motion } from "framer-motion";
 import HeaderMenu from "@/components/layout/HeaderMenu";
 import AccountNameDialog from "@/components/AccountNameDialog";
-import logoAsset from "@/assets/neurolearn-logo.png.asset.json";
+const logoUrl = "/neurolearn-logo.png";
 
 const features = [
   { icon: Sparkles, title: "60-Second Lessons", desc: "Bite-sized, reel-style learning that sticks" },
@@ -23,7 +23,7 @@ const Landing = () => {
       <header className="fixed top-0 left-0 right-0 z-50 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-xl">
         <div className="mx-auto flex max-w-lg items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logoAsset.url} alt="NeuroLearn logo" className="w-7 h-7 object-contain" />
+            <img src={logoUrl} alt="NeuroLearn logo" className="w-7 h-7 object-contain" />
             <span className="font-display text-lg font-bold gradient-text">NeuroLearn</span>
           </Link>
           <HeaderMenu />
