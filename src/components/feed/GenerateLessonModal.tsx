@@ -116,61 +116,37 @@ const GenerateLessonModal = ({ open, onClose }: Props) => {
     mutationFn: async () => {
       if (!generatedLesson) throw new Error("No lesson to save");
 
-      console.log("💾 Saving lesson to database...");
-      const { data: userRes, error: userError } = await supabase.auth.getUser();
-      if (userError || !userRes.user) {
-        throw new Error("You must be signed in to save AI lessons. Please log in and try again.");
-      }
-      const userId = userRes.user.id;
-
-      // Get first practice question if available
-      let mcqQuestion = null;
-      let mcqOptions = [];
+      let mcqQuestion: string | null = null;
+      let mcqOptions: string[] = [];
       let mcqAnswer = 0;
 
       if (generatedLesson.practice_questions && generatedLesson.practice_questions.length > 0) {
         const firstQuestion = generatedLesson.practice_questions[0];
         mcqQuestion = firstQuestion.question;
         mcqOptions = firstQuestion.options;
-
-        const correctOption = firstQuestion.correct_answer;
-        mcqAnswer = mcqOptions.indexOf(correctOption) >= 0
-          ? mcqOptions.indexOf(correctOption)
-          : 0;
+        const idx = mcqOptions.indexOf(firstQuestion.correct_answer);
+        mcqAnswer = idx >= 0 ? idx : 0;
       }
 
-      const lessonData: Record<string, unknown> = {
-
+      const { addLesson } = await import("@/lib/localStore");
+      const id = `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const lesson = {
+        id,
         title: generatedLesson.title,
         subject,
         exam_type: examType,
         content: generatedLesson.content,
         key_points: generatedLesson.key_points || [],
         formula: generatedLesson.formula?.trim() ? generatedLesson.formula : null,
+        examples: generatedLesson.examples || [],
         mcq_question: mcqQuestion,
         mcq_options: mcqOptions,
         mcq_answer: mcqAnswer,
         difficulty: "medium",
+        created_at: new Date().toISOString(),
       };
-
-      lessonData.created_by = userId;
-
-
-      console.log("📝 Lesson data to save:", lessonData);
-
-      const { data, error } = await supabase
-        .from("lessons")
-        .insert([lessonData as never])
-        .select()
-        .single();
-
-      if (error) {
-        console.error("❌ Database error:", error);
-        throw error;
-      }
-      
-      console.log("✅ Lesson saved:", data);
-      return data;
+      addLesson(lesson);
+      return lesson;
     },
     onSuccess: () => {
       console.log("✅ Lesson saved successfully!");

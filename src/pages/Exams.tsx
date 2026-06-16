@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useEffect, useState } from "react";
 import { BookOpen } from "lucide-react";
+import { getLessons } from "@/lib/localStore";
 
 const examCategories = [
   { name: "JEE Main", value: "jee_main", emoji: "⚡", color: "from-blue-500 to-cyan-500" },
@@ -15,21 +14,18 @@ const examCategories = [
 
 const Exams = () => {
   const navigate = useNavigate();
+  const [counts, setCounts] = useState<Record<string, number>>({});
 
-  const { data: lessonCounts = {} } = useQuery({
-    queryKey: ["lesson-counts"],
-    queryFn: async () => {
-      const counts: Record<string, number> = {};
-      for (const exam of examCategories) {
-        const { count } = await supabase
-          .from("lessons")
-          .select("*", { count: "exact", head: true })
-          .eq("exam_type", exam.value);
-        counts[exam.value] = count || 0;
-      }
-      return counts;
-    },
-  });
+  useEffect(() => {
+    const refresh = () => {
+      const c: Record<string, number> = {};
+      for (const l of getLessons()) c[l.exam_type] = (c[l.exam_type] || 0) + 1;
+      setCounts(c);
+    };
+    refresh();
+    window.addEventListener("nl-lessons-change", refresh);
+    return () => window.removeEventListener("nl-lessons-change", refresh);
+  }, []);
 
   return (
     <div className="px-4 py-4">
@@ -49,12 +45,11 @@ const Exams = () => {
               {exam.emoji}
             </div>
             <p className="font-display font-semibold text-sm">{exam.name}</p>
-            <p className="text-muted-foreground text-[10px]">{lessonCounts[exam.value] || 0} lessons</p>
+            <p className="text-muted-foreground text-[10px]">{counts[exam.value] || 0} lessons</p>
           </button>
         ))}
       </div>
 
-      {/* Special modes */}
       <h3 className="font-display font-semibold text-sm mb-2 text-muted-foreground">Special Modes</h3>
       <div className="space-y-2">
         {[

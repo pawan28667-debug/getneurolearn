@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User } from "lucide-react";
+import { createProfile, getProfile } from "@/lib/localStore";
 
 interface Props {
   open: boolean;
@@ -15,67 +15,26 @@ interface Props {
 const AccountNameDialog = ({ open, onClose }: Props) => {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
-  const [isSignedIn, setIsSignedIn] = useState(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!open) return;
-    setCheckingAuth(true);
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsSignedIn(!!user);
-      setCheckingAuth(false);
-    });
-  }, [open]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
     if (trimmed.length < 3) {
       toast.error("Name must be at least 3 characters");
       return;
     }
-
     setLoading(true);
     try {
-      if (!isSignedIn) {
-        // Stash desired name and route to auth
-        localStorage.setItem("pending_account_name", trimmed);
-        toast.info("Sign up or log in to claim this name");
-        onClose();
-        navigate("/auth");
-        return;
+      const existing = getProfile();
+      if (existing && existing.name === trimmed) {
+        toast.success(`Welcome back, ${trimmed}!`);
+      } else {
+        createProfile(trimmed);
+        toast.success(`Welcome, ${trimmed}!`);
       }
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not signed in");
-
-      // Uniqueness check
-      const { data: existing, error: checkErr } = await supabase
-        .from("profiles")
-        .select("user_id")
-        .eq("display_name", trimmed)
-        .neq("user_id", user.id)
-        .maybeSingle();
-      if (checkErr) throw checkErr;
-      if (existing) {
-        toast.error("That account name is already taken — try another");
-        setLoading(false);
-        return;
-      }
-
-      const { error: upErr } = await supabase
-        .from("profiles")
-        .update({ display_name: trimmed })
-        .eq("user_id", user.id);
-      if (upErr) throw upErr;
-
-      toast.success(`Welcome, ${trimmed}!`);
       onClose();
       navigate("/exams");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Could not save name";
-      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -89,7 +48,7 @@ const AccountNameDialog = ({ open, onClose }: Props) => {
             <User className="w-5 h-5 text-primary" /> Pick your account name
           </DialogTitle>
           <DialogDescription>
-            This unique name will be saved to your Exam profile and shown on your lessons and streaks.
+            No sign-up needed — your profile is saved on this device to track XP, streaks, and saved lessons.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -98,14 +57,14 @@ const AccountNameDialog = ({ open, onClose }: Props) => {
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
-            disabled={loading || checkingAuth}
+            disabled={loading}
           />
           <Button
             type="submit"
-            disabled={loading || checkingAuth || !name.trim()}
+            disabled={loading || !name.trim()}
             className="w-full gradient-primary text-primary-foreground font-display font-semibold"
           >
-            {loading ? "Saving…" : isSignedIn ? "Save & Continue" : "Continue to Sign Up"}
+            {loading ? "Saving…" : "Create profile & start"}
           </Button>
         </form>
       </DialogContent>
