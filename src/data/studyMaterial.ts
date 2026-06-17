@@ -272,6 +272,14 @@ function genericChaptersForClass(subject: string, klass: string): Chapter[] {
 export function getChapters(examType: string, subject: string, classLevel: string): Chapter[] {
   const key = `${examType}|${subject}|${classLevel}`;
 
+  // Boards — NCERT chapter banks for classes 6-9 (and a few up to 12 for new subjects)
+  if (examType === "boards") {
+    const bank = NCERT_BOARDS_69[subject]?.[classLevel];
+    if (bank) return toChapters(bank, `NCERT ${subject} — ${classLevel}`);
+    // For new board subjects (Political Science / Geography / Hindi) without an entry, fall through to generic
+  }
+
+
   // JEE / NEET / Boards — Class 11 / 12 specifics
   if (subject === "Physics") {
     if (classLevel === "Class 11") {
