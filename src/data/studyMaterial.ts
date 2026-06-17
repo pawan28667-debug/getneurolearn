@@ -13,7 +13,7 @@ export const examSubjects: Record<string, string[]> = {
   neet: ["Physics", "Chemistry", "Biology"],
   upsc: ["Polity", "History", "Geography", "Economics", "Science", "Environment"],
   ssc: ["Quantitative Aptitude", "English", "Reasoning", "General Awareness"],
-  boards: ["Physics", "Chemistry", "Mathematics", "Biology", "English", "History"],
+  boards: ["Physics", "Chemistry", "Mathematics", "Biology", "English", "History", "Political Science", "Geography", "Hindi"],
 };
 
 export const subjectClasses: Record<string, string[]> = {
